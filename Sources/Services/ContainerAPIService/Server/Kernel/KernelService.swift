@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerAPIClient
 import Containerization
 import ContainerizationArchive
@@ -65,16 +67,19 @@ public actor KernelService {
 
         let kFile = url.resolvingSymlinksInPath()
         let destPath = self.kernelDirectory.appendingPathComponent(kFile.lastPathComponent)
-        if force {
-            do {
-                try FileManager.default.removeItem(at: destPath)
-            } catch let error as NSError {
-                guard error.code == NSFileNoSuchFileError else {
-                    throw error
-                }
+        // Copy next to the destination first, so a failed copy never removes the installed kernel (#2326).
+        let staged = self.kernelDirectory.appendingPathComponent(".\(kFile.lastPathComponent).\(UUID().uuidString)")
+        try FileManager.default.copyItem(at: kFile, to: staged)
+        do {
+            if force && FileManager.default.fileExists(atPath: destPath.path) {
+                _ = try FileManager.default.replaceItemAt(destPath, withItemAt: staged)
+            } else {
+                try FileManager.default.moveItem(at: staged, to: destPath)
             }
+        } catch {
+            try? FileManager.default.removeItem(at: staged)
+            throw error
         }
-        try FileManager.default.copyItem(at: kFile, to: destPath)
         try Task.checkCancellation()
         do {
             try self.setDefaultKernel(name: kFile.lastPathComponent, platform: platform)

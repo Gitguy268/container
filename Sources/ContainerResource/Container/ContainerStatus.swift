@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import Foundation
 
 /// The runtime status of a container. Identity-free: the container's id lives
@@ -25,10 +27,16 @@ public struct ContainerStatus: Codable, Sendable {
     public let networks: [Attachment]
     /// When the container was started, if it has been.
     public let startedDate: Date?
+    /// Exit code of the init process from the last run.
+    public let exitCode: Int32?
+    /// When the last run stopped.
+    public let finishedDate: Date?
 
-    public init(state: RuntimeStatus, networks: [Attachment], startedDate: Date? = nil) {
+    public init(state: RuntimeStatus, networks: [Attachment], startedDate: Date? = nil, exitCode: Int32? = nil, finishedDate: Date? = nil) {
         self.state = state
         self.networks = networks
         self.startedDate = startedDate
+        self.exitCode = exitCode
+        self.finishedDate = finishedDate
     }
 }

@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import Containerization
 import ContainerizationError
 import ContainerizationExtras
@@ -486,6 +488,20 @@ struct ParserTest {
     }
 
     @Test
+    func testMountRelativeDestinationRejection() throws {
+        #expect(throws: ContainerizationError.self) {
+            _ = try Parser.mounts(["type=bind,source=/tmp,target=data"])
+        }
+        #expect(throws: ContainerizationError.self) {
+            _ = try Parser.mounts(["type=volume,src=myvolume,dst=data"])
+        }
+        #expect(throws: ContainerizationError.self) {
+            _ = try Parser.volumes(["/tmp:data"])
+        }
+        #expect(try Parser.mounts(["type=bind,source=/tmp,target=/data"]).count == 1)
+    }
+
+    @Test
     func testMountTmpfsSourceRejection() throws {
         #expect(throws: ContainerizationError.self) {
             _ = try Parser.mount("type=tmpfs,source=tmpfs,target=/tmpfsmount1")
@@ -666,6 +682,24 @@ struct ParserTest {
             envs: ["FOO=fromuser"]
         )
         #expect(Set(result) == Set(["FOO=fromuser", "BAR=fromimage", "BAZ=fromfile"]))
+    }
+
+    @Test
+    func testSysctls() throws {
+        let result = try Parser.sysctls(["net.ipv4.ip_forward=1", "kernel.msgmax=a=b"])
+        #expect(result == ["net.ipv4.ip_forward": "1", "kernel.msgmax": "a=b"])
+        #expect(throws: ContainerizationError.self) { _ = try Parser.sysctls(["novalue"]) }
+        #expect(throws: ContainerizationError.self) { _ = try Parser.sysctls(["=1"]) }
+    }
+
+    @Test
+    func testAllEnvKeepsOrder() throws {
+        let result = try Parser.allEnv(
+            imageEnvs: ["PATH=/bin", "HOME=/root"],
+            envFiles: [],
+            envs: ["ALPHA=1", "BRAVO=2", "HOME=/home", "CHARLIE=3"]
+        )
+        #expect(result == ["PATH=/bin", "HOME=/home", "ALPHA=1", "BRAVO=2", "CHARLIE=3"])
     }
 
     @Test

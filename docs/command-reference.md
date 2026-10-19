@@ -69,11 +69,13 @@ container run [<options>] <image> [<arguments> ...]
 *   `--publish-socket <spec>`: Publish a socket from container to host (format: host_path:container_path)
 *   `--read-only`: Mount the container's root filesystem as read-only
 *   `--read-only-path <path>`: **Experimental.** Mark a path inside the container read-only, in addition to the runtime defaults (or `NONE` to clear prior values and the defaults)
+*   `--pids-limit <pids-limit>`: Limit the number of processes in the container (`-1` for unlimited)
 *   `--rm, --remove`: Remove the container after it stops
 *   `--rosetta`: Enable Rosetta in the container
 *   `--runtime`: Set the runtime handler for the container (default: container-runtime-linux)
 *   `--ssh`: Forward SSH agent socket to container
 *   `--shm-size <shm-size>`: Size of `/dev/shm` (e.g. 64M, 1G)
+*   `--sysctl <key=value>`: Set a namespaced kernel parameter (repeatable)
 *   `--tmpfs <tmpfs>`: Add a tmpfs mount to the container at the given path
 *   `-v, --volume <volume>`: Bind mount a volume into the container
 *   `--virtualization`: Expose virtualization capabilities to the container (requires host and guest support)
@@ -237,11 +239,13 @@ container create [<options>] <image> [<arguments> ...]
 *   `--publish-socket <spec>`: Publish a socket from container to host (format: host_path:container_path)
 *   `--read-only`: Mount the container's root filesystem as read-only
 *   `--read-only-path <path>`: **Experimental.** Mark a path inside the container read-only, in addition to the runtime defaults (or `NONE` to clear prior values and the defaults)
+*   `--pids-limit <pids-limit>`: Limit the number of processes in the container (`-1` for unlimited)
 *   `--rm, --remove`: Remove the container after it stops
 *   `--rosetta`: Enable Rosetta in the container
 *   `--runtime`: Set the runtime handler for the container (default: container-runtime-linux)  
 *   `--ssh`: Forward SSH agent socket to container
 *   `--shm-size <shm-size>`: Size of `/dev/shm` (e.g. 64M, 1G)
+*   `--sysctl <key=value>`: Set a namespaced kernel parameter (repeatable)
 *   `--tmpfs <tmpfs>`: Add a tmpfs mount to the container at the given path
 *   `-v, --volume <volume>`: Bind mount a volume into the container
 *   `--virtualization`: Expose virtualization capabilities to the container (requires host and guest support)
@@ -331,14 +335,14 @@ container delete [--all] [--force] [--debug] [<container-ids> ...]
 *   `-a, --all`: Delete all containers
 *   `-f, --force`: Delete containers even if they are running
 
-### `container list (ls)`
+### `container list (ls/ps)`
 
 Lists containers. By default only running containers are shown. Output can be formatted as a table, JSON, YAML, or TOML.
 
 **Usage**
 
 ```bash
-container list [--all] [--format <format>] [--quiet] [--debug]
+container list [--all] [--format <format>] [--quiet] [--filter <filter> ...] [--debug]
 ```
 
 **Options**
@@ -346,6 +350,7 @@ container list [--all] [--format <format>] [--quiet] [--debug]
 *   `-a, --all`: Include containers that are not running
 *   `--format <format>`: Format of the output (values: json, table, yaml, toml; default: table)
 *   `-q, --quiet`: Only output the container ID
+*   `--filter <filter>`: Show only containers with a label, as `label=<key>` or `label=<key>=<value>` (repeatable; all must match)
 
 ### `container exec`
 
@@ -560,6 +565,38 @@ container cp mycontainer:/var/log/app.log ./logs/
 
 # copy using the full command name
 container copy ./data.txt mycontainer:/tmp/
+```
+
+### `container here`
+
+Runs a container in a VM that lives inside the current terminal process instead of the background services. `container system start` is not needed. When the process ends, because the command exits, the terminal is closed (SIGHUP) or it receives SIGTERM, the VM is stopped and removed. The exit code of the container's process becomes the exit code of `container here`. Images are kept in a separate store under `<app-root>/here`. A kernel must be installed (`container system kernel set --recommended`).
+
+**Usage**
+
+```bash
+container here [--cpus <cpus>] [--memory <memory>] [--env <env> ...] [--volume <volume> ...] [--workdir <workdir>] [--name <name>] [--entrypoint <cmd>] [--debug] <image> [<arguments> ...]
+```
+
+**Options**
+
+*   `-c, --cpus <cpus>`: Number of CPUs to allocate to the container
+*   `-m, --memory <memory>`: Amount of memory, with optional K, M, G, T, or P suffix
+*   `-e, --env <env>`: Set an environment variable (format: key=value)
+*   `-v, --volume <volume>`: Bind mount a host directory (format: `host-path:container-path[:ro]`)
+*   `-w, --workdir <workdir>`: Initial working directory inside the container
+*   `--name <name>`: Name for the VM (default: `here-<random>`)
+*   `--entrypoint <cmd>`: Override the entrypoint of the image
+
+With a terminal attached the container gets a pty, and Ctrl-C goes to the process inside it. Without one (pipes, scripts), stdin, stdout and stderr are passed through, and Ctrl-C (SIGINT) is forwarded to the container's process. Port publishing and private registries are not supported.
+
+### `container wait`
+
+Blocks until each container stops, then prints its exit code. Works for containers that already stopped, as long as the API server has not been restarted since.
+
+**Usage**
+
+```bash
+container wait [--debug] <container-ids> ...
 ```
 
 ### `container prune`
@@ -1361,6 +1398,32 @@ No options.
 ## System Management
 
 System commands manage the container apiserver, logs, DNS settings and kernel. These are only available on macOS hosts.
+
+### `container system prune`
+
+Removes stopped containers, unused networks and dangling images in that order, so resources freed by removed containers are pruned too. Asks for confirmation unless `--force` is given.
+
+**Usage**
+
+```bash
+container system prune [--all] [--volumes] [--force] [--debug]
+```
+
+**Options**
+
+*   `-a, --all`: Remove all unused images, not just dangling ones
+*   `--volumes`: Also remove unused volumes
+*   `-f, --force`: Do not ask for confirmation
+
+### `container dash`
+
+A full-screen terminal dashboard for containers, images, machines, volumes and networks. It refreshes every `--interval` seconds (default 2) and shows CPU and memory for running containers. Keys: `↑↓`/`jk` select, `tab` switch tabs, `s` start/stop, `r` restart, `e` shell, `l` logs, `d` delete (asks first), `/` filter, `S` system start, `?` help, `q` quit.
+
+**Usage**
+
+```bash
+container dash [--interval <interval>] [--debug]
+```
 
 ### `container system start`
 

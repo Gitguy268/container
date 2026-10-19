@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerizationOCI
 import Foundation
 
@@ -39,16 +41,24 @@ public struct ContainerSnapshot: Codable, Sendable {
     public var networks: [Attachment]
     /// When the container was started.
     public var startedDate: Date?
+    /// Exit code of the init process from the last run, if it has stopped since starting.
+    public var exitCode: Int32?
+    /// When the last run stopped.
+    public var finishedDate: Date?
 
     public init(
         configuration: ContainerConfiguration,
         status: RuntimeStatus,
         networks: [Attachment],
-        startedDate: Date? = nil
+        startedDate: Date? = nil,
+        exitCode: Int32? = nil,
+        finishedDate: Date? = nil
     ) {
         self.configuration = configuration
         self.status = status
         self.networks = networks
         self.startedDate = startedDate
+        self.exitCode = exitCode
+        self.finishedDate = finishedDate
     }
 }

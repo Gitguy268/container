@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ArgumentParser
 import ContainerizationError
 import Foundation
@@ -196,7 +198,9 @@ public struct Flags {
             tmpFs: [String],
             useInit: Bool,
             virtualization: Bool,
-            volumes: [String]
+            volumes: [String],
+            pidsLimit: Int64? = nil,
+            sysctls: [String] = []
         ) {
             self.arch = arch
             self.capAdd = capAdd
@@ -229,6 +233,8 @@ public struct Flags {
             self.useInit = useInit
             self.virtualization = virtualization
             self.volumes = volumes
+            self.pidsLimit = pidsLimit
+            self.sysctls = sysctls
         }
 
         @Option(name: .shortAndLong, help: "Set arch if image can target multiple architectures")
@@ -329,6 +335,9 @@ public struct Flags {
         )
         public var publishPorts: [String] = []
 
+        @Option(name: .customLong("pids-limit"), help: "Limit the number of processes in the container (-1 for unlimited)")
+        public var pidsLimit: Int64?
+
         @Option(name: .long, help: "Platform for the image if it's multi-platform. This takes precedence over --os and --arch [environment: CONTAINER_DEFAULT_PLATFORM]")
         public var platform: String?
 
@@ -368,6 +377,9 @@ public struct Flags {
 
         @Option(name: .customLong("shm-size"), help: "Size of /dev/shm (e.g. 64M, 1G)")
         public var shmSize: String?
+
+        @Option(name: .customLong("sysctl"), help: .init("Set a namespaced kernel parameter (format: key=value)", valueName: "key=value"))
+        public var sysctls: [String] = []
 
         @Option(name: .customLong("tmpfs"), help: "Add a tmpfs mount to the container at the given path")
         public var tmpFs: [String] = []

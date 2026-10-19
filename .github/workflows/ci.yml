@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    # Hosted runners cannot boot Virtualization.framework guests, so this runs the build,
+    # lint and unit tests only; integration tests (make integration) run locally.
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Lint (swift format, licence headers)
+        env:
+          # hawkeye is downloaded at a pinned version and checked against its SHA-256.
+          HAWKEYE_AUTO_INSTALL: "1"
+        run: make check
+      - name: Build and sign
+        run: make all
+      - name: Unit tests
+        run: make test

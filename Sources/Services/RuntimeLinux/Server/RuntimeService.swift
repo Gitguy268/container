@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerNetworkClient
 import ContainerOS
 import ContainerPersistence
@@ -1130,6 +1132,9 @@ public actor RuntimeService {
         sysctls["vm.overcommit_memory"] = "1"
         sysctls["vm.max_map_count"] = "262144"
         czConfig.sysctl = sysctls
+        if let pidsLimit = config.pidsLimit {
+            czConfig.unified["pids.max"] = pidsLimit == -1 ? "max" : String(pidsLimit)
+        }
         // If the host doesn't support this, we'll throw on container creation.
         czConfig.virtualization = config.virtualization
         czConfig.useInit = config.useInit

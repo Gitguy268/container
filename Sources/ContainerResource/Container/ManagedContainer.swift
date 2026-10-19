@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerizationOCI
 import Foundation
 
@@ -62,7 +64,9 @@ public struct ManagedContainer: ManagedResource {
         self.status = ContainerStatus(
             state: snapshot.status,
             networks: snapshot.networks,
-            startedDate: snapshot.startedDate
+            startedDate: snapshot.startedDate,
+            exitCode: snapshot.exitCode,
+            finishedDate: snapshot.finishedDate
         )
     }
 }

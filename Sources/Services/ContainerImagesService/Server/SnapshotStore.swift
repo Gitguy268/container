@@ -14,7 +14,10 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerAPIClient
+import ContainerPersistence
 import ContainerResource
 import Containerization
 import ContainerizationEXT4
@@ -63,6 +66,7 @@ public actor SnapshotStore {
         self.unpackStrategy = unpackStrategy
         self.log = log
         try self.fm.createDirectory(at: root, withIntermediateDirectories: true)
+        try PathUtils.excludeFromBackup(root)
         try self.fm.createDirectory(at: self.ingestDir, withIntermediateDirectories: true)
     }
 

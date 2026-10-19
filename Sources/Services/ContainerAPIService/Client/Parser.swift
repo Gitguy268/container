@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerPersistence
 import ContainerResource
 import Containerization
@@ -179,12 +181,19 @@ public struct Parser {
         }
         combined.append(contentsOf: Parser.env(envList: envs))
 
-        let deduped = combined.reduce(into: [String: String](minimumCapacity: combined.count)) { map, entry in
+        // Later entries override earlier ones but keep the first one's position, so the order is stable (#2338).
+        var result: [String] = []
+        var index: [String: Int] = [:]
+        for entry in combined {
             let key = String(entry.split(separator: "=", maxSplits: 1).first ?? Substring(entry))
-            map[key] = entry
+            if let i = index[key] {
+                result[i] = entry
+            } else {
+                index[key] = result.count
+                result.append(entry)
+            }
         }
-
-        return deduped.map { $0.value }
+        return result
     }
 
     public static func envFile(path: String) throws -> [String] {
@@ -301,6 +310,18 @@ public struct Parser {
             default:
                 throw ContainerizationError(.invalidArgument, message: "invalid label format \(label)")
             }
+        }
+        return result
+    }
+
+    public static func sysctls(_ raw: [String]) throws -> [String: String] {
+        var result: [String: String] = [:]
+        for entry in raw {
+            let parts = entry.split(separator: "=", maxSplits: 1).map(String.init)
+            guard parts.count == 2, !parts[0].isEmpty else {
+                throw ContainerizationError(.invalidArgument, message: "invalid sysctl format '\(entry)': expected key=value")
+            }
+            result[parts[0]] = parts[1]
         }
         return result
     }
@@ -655,9 +676,16 @@ public struct Parser {
             if fs.destination.isEmpty {
                 throw ContainerizationError(.invalidArgument, message: "mount destination cannot be empty")
             }
+            // Relative targets used to be mounted at /<path> silently (#2324).
+            if !fs.destination.isAbsolutePath() {
+                throw ContainerizationError(.invalidArgument, message: "mount destination \(fs.destination) is not an absolute path in the container")
+            }
         case .volume(let vol):
             if vol.destination.isEmpty {
                 throw ContainerizationError(.invalidArgument, message: "volume destination cannot be empty")
+            }
+            if !vol.destination.isAbsolutePath() {
+                throw ContainerizationError(.invalidArgument, message: "volume destination \(vol.destination) is not an absolute path in the container")
             }
         // Volume name validation already done during parsing
         }

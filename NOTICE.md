@@ -1,3 +1,9 @@
+**Lucas Van De Weerd ( Gitguy268/container fork )**
+Copyright © 2026 Lucas Van De Weerd
+This is a modified version of apple/container (Copyright © 2025-2026 Apple Inc. and the container project authors). The modifications are listed under "What this fork adds" in README.md and in the git history, and are licensed under the Apache License, Version 2.0, like the original. This fork is not affiliated with or endorsed by Apple Inc.
+Changes from these open upstream pull requests are included, with credit to their authors: #1226 (natevw), #2146 (guanchzhou), #2412 (abdullahtas0).
+`container here` follows the run flow of `cctl run` from apple/containerization (Apache License, Version 2.0).
+
 **Apple Inc. and the AsyncHTTPClient project authors ( async-http-client )**
 Copyright © 2018-2021 Apple Inc. and the AsyncHTTPClient project authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.

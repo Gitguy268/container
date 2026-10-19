@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ArgumentParser
 import ContainerAPIClient
 
@@ -29,6 +31,7 @@ extension Application {
                 SystemKernel.self,
                 SystemLogs.self,
                 SystemProperty.self,
+                SystemPrune.self,
                 SystemStart.self,
                 SystemStatus.self,
                 SystemStop.self,

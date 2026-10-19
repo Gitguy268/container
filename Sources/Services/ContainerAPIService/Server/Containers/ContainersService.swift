@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import CVersion
 import ContainerAPIClient
 import ContainerPersistence
@@ -74,6 +76,7 @@ public actor ContainersService {
     ) throws {
         let containerRoot = appRoot.appendingPathComponent("containers")
         try FileManager.default.createDirectory(at: containerRoot, withIntermediateDirectories: true)
+        try PathUtils.excludeFromBackup(containerRoot)
         self.exitMonitor = ExitMonitor(log: log)
         self.lock = AsyncLock(log: log)
         self.containerRoot = containerRoot
@@ -543,6 +546,8 @@ public actor ContainersService {
                 state.snapshot.status = .running
                 state.snapshot.networks = sandboxSnapshot.networks
                 state.snapshot.startedDate = Date()
+                state.snapshot.exitCode = nil
+                state.snapshot.finishedDate = nil
                 await self.setContainerState(id, state, context: context)
             } catch {
                 await self.exitMonitor.stopTracking(id: id)
@@ -981,6 +986,12 @@ public actor ContainersService {
         do {
             state = try self.getContainerState(id: id, context: context)
             if state.snapshot.status == .stopped {
+                // A stop can mark the container stopped before the exit monitor reports the code; keep it for `wait`.
+                if let code, state.snapshot.exitCode == nil {
+                    state.snapshot.exitCode = code.exitCode
+                    state.snapshot.finishedDate = code.exitedAt
+                    await self.setContainerState(id, state, context: context)
+                }
                 return
             }
         } catch {
@@ -1033,6 +1044,8 @@ public actor ContainersService {
         }
 
         state.snapshot.status = .stopped
+        state.snapshot.exitCode = code?.exitCode
+        state.snapshot.finishedDate = code?.exitedAt ?? Date()
         state.snapshot.networks = []
         state.client = nil
         await self.setContainerState(id, state, context: context)

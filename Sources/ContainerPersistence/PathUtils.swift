@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerVersion
 import Foundation
 import SystemPackage
@@ -57,5 +59,19 @@ public enum PathUtils {
                 return installRootPath
             }
         }
+    }
+
+    /// Marks an existing directory so Time Machine skips it.
+    ///
+    /// The exclusion is the sticky item attribute, not a path-list entry, and
+    /// applying it again is safe. Call it whenever the directory is ensured so an
+    /// install that already has the directory is excluded on the next start. Use it
+    /// for data that can be recreated, such as image snapshots and container root
+    /// filesystems, not for volume data.
+    public static func excludeFromBackup(_ url: URL) throws {
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var mutableURL = url
+        try mutableURL.setResourceValues(values)
     }
 }

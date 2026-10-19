@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerizationExtras
 import ContainerizationOS
 import Foundation
@@ -49,7 +51,7 @@ public struct ProcessIO: Sendable {
                 return nil
             }
             let current = try Terminal(descriptor: STDIN_FILENO)
-            try current.setraw()
+            try current.setrawNoOutputProcessing()
             return current
         }()
 
@@ -381,6 +383,23 @@ public struct OSFile: Sendable {
                 continue
             }
             return (bytesRead, .success)
+        }
+    }
+}
+
+extension Terminal {
+    /// Raw mode with output post-processing off as well. The guest pty already translated
+    /// LF to CRLF, so translating again on the host breaks tmux and other TUIs (#2299).
+    public func setrawNoOutputProcessing() throws {
+        try setraw()
+        let fd = handle.fileDescriptor
+        var attr = termios()
+        guard tcgetattr(fd, &attr) == 0 else {
+            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+        }
+        attr.c_oflag &= ~tcflag_t(OPOST)
+        guard tcsetattr(fd, TCSANOW, &attr) == 0 else {
+            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
         }
     }
 }

@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerizationOCI
 import Foundation
 
@@ -32,6 +34,8 @@ public struct ContainerConfiguration: Sendable, Codable {
     public var labels: [String: String] = [:]
     /// System controls for the container.
     public var sysctls: [String: String] = [:]
+    /// Maximum number of processes in the container's cgroup; -1 is unlimited, nil the runtime default.
+    public var pidsLimit: Int64?
     /// The networks the container will be added to.
     public var networks: [AttachmentConfiguration] = []
     /// The DNS configuration for the container.
@@ -81,6 +85,7 @@ public struct ContainerConfiguration: Sendable, Codable {
         case publishedSockets
         case labels
         case sysctls
+        case pidsLimit
         case networks
         case dns
         case rosetta
@@ -113,6 +118,7 @@ public struct ContainerConfiguration: Sendable, Codable {
         publishedSockets = try container.decodeIfPresent([PublishSocket].self, forKey: .publishedSockets) ?? []
         labels = try container.decodeIfPresent([String: String].self, forKey: .labels) ?? [:]
         sysctls = try container.decodeIfPresent([String: String].self, forKey: .sysctls) ?? [:]
+        pidsLimit = try container.decodeIfPresent(Int64.self, forKey: .pidsLimit)
 
         if container.contains(.networks) {
             networks = try container.decode([AttachmentConfiguration].self, forKey: .networks)

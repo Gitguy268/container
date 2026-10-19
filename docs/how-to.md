@@ -22,3 +22,4 @@
 - [Container machines](./container-machine.md) — persistent Linux environments built from OCI images, with your home directory mounted in and the filesystem surviving stop/start.
 - [Kubernetes clusters](./kubernetes.md) — run local Kubernetes clusters, single-node or multi-node, for development and testing, load your own images, and test deployments before production.
 - [Shell completions](./shell-completions.md) — generate and install completion scripts for `zsh`, `bash`, and `fish`.
+- [Terminal-only VMs and the dashboard](./terminal.md) — run a container in a VM that lives inside your terminal with `container here`, and manage everything from `container dash`.

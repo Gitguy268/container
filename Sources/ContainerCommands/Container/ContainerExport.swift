@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ArgumentParser
 import ContainerAPIClient
 import ContainerizationError
@@ -44,6 +46,14 @@ extension Application {
         var id: String
 
         public func run() async throws {
+            // Refuse before exporting: replacing a directory would delete everything in it (#2325).
+            var isDirectory: ObjCBool = false
+            if let output, FileManager.default.fileExists(atPath: output, isDirectory: &isDirectory), isDirectory.boolValue {
+                throw ContainerizationError(
+                    .invalidArgument,
+                    message: "output path \(output) is a directory; pass a file path such as \(URL(fileURLWithPath: output).appendingPathComponent("\(id).tar").path)")
+            }
+
             let client = ContainerClient()
             let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
 

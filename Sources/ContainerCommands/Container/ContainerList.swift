@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ArgumentParser
 import ContainerAPIClient
 import ContainerResource
@@ -26,7 +28,7 @@ extension Application {
         public static let configuration = CommandConfiguration(
             commandName: "list",
             abstract: "List running containers",
-            aliases: ["ls"])
+            aliases: ["ls", "ps"])
 
         @Flag(name: .shortAndLong, help: "Include containers that are not running")
         var all = false
@@ -37,6 +39,9 @@ extension Application {
         @Flag(name: .shortAndLong, help: "Only output the container ID")
         var quiet = false
 
+        @Option(name: .long, help: "Filter output, as label=<key> or label=<key>=<value> (repeatable, all must match)")
+        var filter: [String] = []
+
         @OptionGroup
         public var logOptions: Flags.Logging
 
@@ -45,10 +50,24 @@ extension Application {
         public func run() async throws {
             let client = ContainerClient()
 
-            let filters = ContainerListFilters(status: self.all ? nil : .running).withoutMachines()
+            let labels = try Self.labelFilters(filter)
+            let filters = ContainerListFilters(status: self.all ? nil : .running, labels: labels).withoutMachines()
             let containers = try await client.list(filters: filters)
             let items = containers.map { ManagedContainer($0) }
             try Output.render(payload: items, display: items, format: format, quiet: quiet)
+        }
+
+        /// Turns `label=k` / `label=k=v` into the anchored regular expressions the server matches.
+        static func labelFilters(_ raw: [String]) throws -> [String: String] {
+            var labels: [String: String] = [:]
+            for entry in raw {
+                let parts = entry.split(separator: "=", maxSplits: 2, omittingEmptySubsequences: false).map(String.init)
+                guard parts.count >= 2, parts[0] == "label", !parts[1].isEmpty else {
+                    throw ValidationError("unsupported filter '\(entry)'; use label=<key> or label=<key>=<value>")
+                }
+                labels[parts[1]] = parts.count == 3 ? "^\(NSRegularExpression.escapedPattern(for: parts[2]))$" : ".+"
+            }
+            return labels
         }
     }
 }

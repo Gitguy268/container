@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ContainerPersistence
 import ContainerResource
 import Containerization
@@ -236,6 +238,13 @@ public struct Utility {
         }
 
         config.labels = try Parser.labels(management.labels)
+        config.sysctls = try Parser.sysctls(management.sysctls)
+        if let pidsLimit = management.pidsLimit {
+            guard pidsLimit == -1 || pidsLimit > 0 else {
+                throw ContainerizationError(.invalidArgument, message: "--pids-limit must be a positive number or -1")
+            }
+            config.pidsLimit = pidsLimit
+        }
 
         config.publishedPorts = try Parser.publishPorts(management.publishPorts)
         guard config.publishedPorts.count <= publishedPortCountLimit else {

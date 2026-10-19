@@ -14,6 +14,8 @@
 // limitations under the License.
 //===----------------------------------------------------------------------===//
 
+// Modified by Lucas Van De Weerd for the Gitguy268/container fork, 2026.
+
 import ArgumentParser
 import ContainerAPIClient
 import ContainerLog
@@ -59,6 +61,7 @@ public struct Application: AsyncLoggableCommand {
                     ContainerDelete.self,
                     ContainerExec.self,
                     ContainerExport.self,
+                    ContainerHere.self,
                     ContainerInspect.self,
                     ContainerKill.self,
                     ContainerList.self,
@@ -68,6 +71,7 @@ public struct Application: AsyncLoggableCommand {
                     ContainerStats.self,
                     ContainerStop.self,
                     ContainerPrune.self,
+                    ContainerWait.self,
                 ]
             ),
             CommandGroup(
@@ -163,11 +167,13 @@ public struct Application: AsyncLoggableCommand {
     private static func otherCommands() -> [any ParsableCommand.Type] {
         guard #available(macOS 26, *) else {
             return [
-                SystemCommand.self
+                Dashboard.self,
+                SystemCommand.self,
             ]
         }
 
         return [
+            Dashboard.self,
             NetworkCommand.self,
             SystemCommand.self,
         ]
