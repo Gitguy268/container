@@ -11,6 +11,40 @@ The tool consumes and produces [OCI-compatible container images](https://github.
 
 ![introductory movie showing some basic commands](./docs/assets/landing-movie.gif)
 
+<!-- run-steps:start -->
+## Run it locally, step by step
+
+1. **You need a Mac with Apple silicon,** macOS 15 or newer (26 recommended) and Xcode 26.
+
+2. **Get the code:**
+
+   ```sh
+   git clone https://github.com/Gitguy268/container.git
+   cd container
+   ```
+
+3. **Build it:**
+
+   ```sh
+   make all
+   ```
+
+4. **Install and start it:**
+
+   ```sh
+   sudo make install
+   container system start
+   ```
+
+5. **Boot a Linux VM right in your terminal:**
+
+   ```sh
+   container here ubuntu bash
+   ```
+
+   Type `exit` to leave.
+<!-- run-steps:end -->
+
 ## What this fork adds
 
 > [!NOTE]
