@@ -11,6 +11,10 @@ The tool consumes and produces [OCI-compatible container images](https://github.
 
 ![introductory movie showing some basic commands](./docs/assets/landing-movie.gif)
 
+<!-- live-links -->
+**Project page:** [gitguy268.github.io/container](https://gitguy268.github.io/container/) · [container-black.vercel.app](https://container-black.vercel.app)
+<!-- /live-links -->
+
 <!-- run-steps:start -->
 ## Run it locally, step by step
 
