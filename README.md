@@ -97,7 +97,7 @@ Upstream `container` runs every VM inside launchd services: `container-apiserver
 
 ```bash
 # Clone it outside Documents and Desktop (vmnet bug)
-cd ~/container
+git clone https://github.com/Gitguy268/container.git && cd container
 make all                  # builds and signs into ./bin and ./libexec
 bin/container system start
 bin/container here alpine echo hello
