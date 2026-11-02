@@ -96,7 +96,7 @@ Upstream `container` runs every VM inside launchd services: `container-apiserver
 <summary>Build this fork</summary>
 
 ```bash
-# The fork isn't on GitHub yet: start from a copy of it, kept outside Documents and Desktop (vmnet bug)
+# Clone it outside Documents and Desktop (vmnet bug)
 cd ~/container
 make all                  # builds and signs into ./bin and ./libexec
 bin/container system start
