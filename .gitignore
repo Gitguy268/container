@@ -36,3 +36,8 @@ _serve/
 # Default APP_ROOT and SCRATCH_ROOT for local test runs.
 .test-data/
 .test-scratch/
+.vercel/
+.env
+.env.*
+!.env.example
+node_modules/
