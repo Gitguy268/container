@@ -15,6 +15,16 @@ The tool consumes and produces [OCI-compatible container images](https://github.
 **Project page:** [gitguy268.github.io/container](https://gitguy268.github.io/container/) · [container-black.vercel.app](https://container-black.vercel.app)
 <!-- /live-links -->
 
+## Install with Homebrew
+
+```sh
+brew trust gitguy268/tap
+brew install gitguy268/tap/container-here
+container system start
+```
+
+This builds the fork from source (about 5 minutes; Apple silicon, macOS 15 or newer). It installs the same `container` command as homebrew-core's `container`, so the two conflict.
+
 <!-- run-steps:start -->
 ## Run it locally, step by step
 
